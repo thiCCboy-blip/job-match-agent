@@ -1,0 +1,77 @@
+{
+  "description": "Labelled job-match cases. Each case pairs a job description with a resume and states the verdict a competent reviewer would give, plus the skills each document should yield. The cases are chosen to break specific mechanisms, not to be easy.",
+  "cases": [
+    {
+      "id": "synonym-dashboard",
+      "note": "Posting and resume use different names for the same tools. A lexical matcher calls this a weak match.",
+      "jd_text": "Senior Power BI Developer\nRequirements:\n- 4+ years building dashboards in Power BI required\n- Strong DAX and SQL skills mandatory\n- Tableau experience is a plus\n- Excellent stakeholder communication required",
+      "resume_text": "PRIYA NAIR\nSUMMARY\nAnalytics engineer focused on reporting.\nEXPERIENCE\nSenior Analyst, Globex | 03/2019 - 08/2024\n- Owned the enterprise reporting suite in Tableau with 200+ dashboards\n- Wrote complex SQL and DAX measures for finance\n- Presented insights to non-technical stakeholders weekly\nSKILLS\nTableau, SQL, DAX, Power BI, Python",
+      "expected_verdict": "strong",
+      "expected_matched": ["Power BI", "SQL", "Communication", "Tableau"],
+      "expected_missing": []
+    },
+    {
+      "id": "hard-negative-domain",
+      "note": "Resume has the same domain vocabulary at a different altitude. A keyword matcher rewards it; the reviewer's answer is stretch, not strong.",
+      "jd_text": "Civil Engineering Site Manager\nRequirements:\n- 8+ years managing construction site operations required\n- Primavera P6 scheduling experience mandatory\n- Experience with BOQ preparation and rate analysis required\n- HSE and quality management responsibility essential\n- MBA preferred",
+      "resume_text": "RAJ KUMAR\nEXPERIENCE\nCivil Engineer, Buildtech | 06/2021 - Present\n- Supervised residential site works and quality checks\n- Prepared BOQs and quantity take-offs from drawings\n- Used Civil 3D and AutoCAD for site layouts\nEDUCATION\nB.Tech Civil Engineering\nSKILLS\nAutoCAD, Civil 3D, quantity take-off, cost estimation, site supervision, HSE",
+      "expected_verdict": "stretch",
+      "expected_matched": ["Quantity Take-off", "Cost Estimation", "HSE", "Site Supervision"],
+      "expected_missing": ["Primavera P6", "Scheduling", "MBA"]
+    },
+    {
+      "id": "must-have-knockout",
+      "note": "Strong on most things, absent on the one mandatory item. The verdict must not be rescued by averaging.",
+      "jd_text": "MLOps Engineer\nRequirements:\n- Strong Python and Docker required\n- Kubernetes in production mandatory\n- CI/CD experience required\n- AWS exposure is a plus\n- MLOps tooling experience preferred",
+      "resume_text": "SAM LEE\nEXPERIENCE\nML Engineer, Helio | 01/2022 - Present\n- Built and deployed NLP models in Python using Docker\n- Set up GitHub Actions pipelines for model training\n- Served models on AWS\nSKILLS\nPython, Docker, PyTorch, AWS, GitHub Actions, NLP",
+      "expected_verdict": "weak",
+      "expected_matched": ["Python", "Docker", "AWS", "CI/CD"],
+      "expected_missing": ["Kubernetes"]
+    },
+    {
+      "id": "years-shortfall",
+      "note": "Every skill present, one stated duration short. Partial credit, not a zero.",
+      "jd_text": "Data Analyst\nRequirements:\n- 6+ years of SQL experience required\n- 6+ years of Excel required\n- Python required\n- Tableau is a plus",
+      "resume_text": "ANNA SILVA\nEXPERIENCE\nData Analyst, Bravo | 02/2020 - Present\n- Three years of daily SQL and advanced Excel reporting\n- Recent Python scripting for data cleanup\nSKILLS\nSQL, Excel, Python, Tableau",
+      "expected_verdict": "stretch",
+      "expected_matched": ["SQL", "Excel", "Python", "Tableau"],
+      "expected_missing": []
+    },
+    {
+      "id": "abbreviation-plural",
+      "note": "Posting uses abbreviations and plurals that appear nowhere in the resume's wording.",
+      "jd_text": "Systems Engineer\nRequirements:\n- K8s administration required\n- Postgres administration required\n- CI/CD pipelines required\n- Node.js services required",
+      "resume_text": "DEV PATEL\nEXPERIENCE\nSystems Engineer, Orion | 05/2020 - Present\n- Managed Kubernetes clusters on Linux hosts\n- Administered PostgreSQL databases with regular backups\n- Built continuous delivery pipelines with Jenkins\n- Maintained microservices in Node.js\nSKILLS\nKubernetes, PostgreSQL, Jenkins, Node.js, microservices, Linux",
+      "expected_verdict": "strong",
+      "expected_matched": ["Kubernetes", "PostgreSQL", "Node.js", "CI/CD"],
+      "expected_missing": []
+    },
+    {
+      "id": "importance-scope",
+      "note": "A 'plus' requirement sits between two 'required' ones. Reading a window instead of the clause inverts all three.",
+      "jd_text": "Business Analyst\nRequirements:\n- Advanced SQL required\n- dbt is a plus\n- Tableau certification required\n- Stakeholder management required",
+      "resume_text": "MIA CHEN\nEXPERIENCE\nBusiness Analyst, Delta | 07/2018 - Present\n- Advanced SQL analysis for commercial reporting\n- Ran stakeholder workshops and requirement sessions\nSKILLS\nSQL, stakeholder management, business analysis",
+      "expected_verdict": "weak",
+      "expected_matched": ["SQL", "Communication"],
+      "expected_missing": ["dbt", "Tableau"]
+    },
+    {
+      "id": "education-requirement",
+      "note": "Degree requirement must be read from the education line, not from a URL containing '.com'.",
+      "jd_text": "Graduate Data Analyst\nRequirements:\n- Bachelor's degree in Engineering or Statistics required\n- SQL required\n- Python required",
+      "resume_text": "OMAR HADDAD\nEXPERIENCE\nData Analyst, Zenith | 01/2021 - Present\n- SQL and Python reporting for operations\nEDUCATION\nB.Tech Computer Engineering\nCONTACT\ngithub.com/omarhaddad | linkedin.com/in/omarhaddad\nSKILLS\nSQL, Python",
+      "expected_verdict": "strong",
+      "expected_matched": ["SQL", "Python", "Bachelor's degree in Engineering or Statistics"],
+      "expected_missing": []
+    },
+    {
+      "id": "overlapping-experience",
+      "note": "Concurrent roles must not be double counted when the total experience figure is computed.",
+      "jd_text": "Data Analyst\nRequirements:\n- 3+ years of SQL required\n- 3+ years of Python required\n- Power BI required",
+      "resume_text": "LUCY WEST\nEXPERIENCE\nData Analyst, Apex | 01/2021 - Present\n- SQL and Python analysis for finance\n- Dashboards in Power BI\nConsultant, Beta | 01/2022 - 06/2022\n- Additional SQL work\nEDUCATION\nBSc Statistics\nSKILLS\nSQL, Python, Power BI",
+      "expected_verdict": "strong",
+      "expected_matched": ["SQL", "Python", "Power BI"],
+      "expected_missing": []
+    }
+  ]
+}

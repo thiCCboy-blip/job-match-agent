@@ -252,6 +252,66 @@ def test_actual_skill_bullets_are_still_requirements():
     assert "TensorFlow" in names
 
 
+@pytest.mark.parametrize(
+    "line",
+    [
+        "You will be the site engineer of record, reporting to the project manager.",
+        "Send me the drawings before Friday.",
+        "operations for an ongoing residential project. You will be the site",
+    ],
+)
+def test_plain_words_be_and_me_are_not_degrees(line):
+    # "b.e" with an optional dot matches the word "be", and "m.e" matches "me",
+    # so ordinary prose was being read as a degree requirement.
+    assert not extract._is_education_requirement(line)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "Bachelor's degree in Civil Engineering required",
+        "B.E. in Civil Engineering",
+        "B.E Civil Engineering",
+        "M.E. Structural Engineering preferred",
+        "B.Tech Computer Engineering",
+        "MBA",
+    ],
+)
+def test_real_degree_abbreviations_are_still_detected(line):
+    assert extract._is_education_requirement(line)
+
+
+def test_summary_prose_does_not_become_a_requirement():
+    jd_text = (
+        "Civil Engineer - Construction Site Operations\n"
+        "About the role\n"
+        "We are looking for a civil engineer to run day-to-day construction\n"
+        "site operations for an ongoing residential project. You will be the\n"
+        "site engineer of record, reporting to the project manager.\n"
+        "Requirements\n"
+        "- Strong Primavera P6 scheduling experience is mandatory\n"
+    )
+    profile = extract.extract_jd_with_rules(
+        ingest.load_document(jd_text, doc_type="text")
+    )
+    names = [r.name for r in profile.requirements]
+    assert "operations for an ongoing residential project" not in names
+    # The genuine requirement must survive the summary text.
+    assert "Primavera P6" in names
+
+
+def test_resume_education_evidence_is_plain_text():
+    resume_text = (
+        "EDUCATION\n**B.Tech, Civil Engineering** - National Institute of "
+        "Technology Calicut | 12/2021 to 08/2025"
+    )
+    profile = extract.extract_resume_with_rules(
+        ingest.load_document(resume_text, doc_type="text")
+    )
+    assert "**" not in profile.highest_education
+    assert profile.highest_education.startswith("B.Tech, Civil Engineering")
+
+
 def test_requirement_names_carry_no_markdown():
     profile = extract.extract_jd_with_rules(
         ingest.load_document(PROSE_JD, doc_type="text")

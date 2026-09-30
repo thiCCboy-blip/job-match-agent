@@ -455,8 +455,13 @@ def _is_prose_line(line: ingest.Line) -> bool:
 
 
 _EDUCATION_REQUIREMENT_RE = re.compile(
+    # The two-letter abbreviations require their period. With the dot optional,
+    # "b.e" matched the plain word "be", so "You will be the site engineer" was
+    # classified as a B.E. degree requirement and the surrounding clause was
+    # then emitted as a qualification. "m.e" had the same effect on "me". Longer
+    # forms (B.Tech, B.Sc, M.Tech, B.Com) are unambiguous without a period.
     r"\b(bachelor(?:'?s)?|master(?:'?s)?|mba|ph\.?d|b\.?\.?tech|m\.?\.?tech|b\.?\.?sc|m\.?\.?sc|"
-    r"b\.?\.?e\b|m\.?\.?e\b|b\.?\.?com|diploma|polytechnic|degree|diplomas?)\b",
+    r"b\.e\.?|m\.e\.?|b\.?\.?com|diploma|polytechnic|degree|diplomas?)\b",
     re.IGNORECASE,
 )
 
@@ -903,20 +908,24 @@ def _estimate_total_years(
 def _extract_education(document: ingest.Document) -> tuple[str | None, Evidence | None]:
     """Highest qualification found, with the line that states it."""
     degree_re = re.compile(
+        # Two-letter abbreviations keep their required period, so the plain
+        # words "be" and "me" cannot masquerade as B.E. and M.E. degrees.
         r"\b(bachelor(?:'?s)?(?:\s+of)?(?:\s+(?:science|arts|engineering|technology|commerce|business))?|"
         r"master(?:'?s)?(?:\s+of)?(?:\s+(?:science|arts|engineering|technology|commerce|business))?|"
-        r"b\.?\.?tech|m\.?\.?tech|b\.?\.?e\b|m\.?\.?e\b|ph\.?\.?d|diploma|polytechnic|"
+        r"b\.?\.?tech|m\.?\.?tech|b\.e\.?|m\.e\.?|ph\.?\.?d|diploma|polytechnic|"
         r"b\.?\.?sc\b|m\.?\.?sc\b|b\.?\.?com\b|b\.?\.?ba\b|mba)\b",
         re.IGNORECASE,
     )
     for line in document.lines:
         if line.section == "education" and degree_re.search(line.text):
-            return line.text[:160], _evidence_from_line(line)
+            text = _clean_markdown(line.text)
+            return text[:160], _evidence_from_line(line)
     for line in document.lines:
         if line.section is not None:
             continue
         if degree_re.search(line.text):
-            return line.text[:160], _evidence_from_line(line)
+            text = _clean_markdown(line.text)
+            return text[:160], _evidence_from_line(line)
     return None, None
 
 

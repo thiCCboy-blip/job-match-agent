@@ -367,3 +367,42 @@ def test_unrelated_compound_requirement_does_not_match():
         config(),
     )
     assert report.outcomes[0].status is matcher.MatchStatus.MISSING
+
+def test_no_requirements_yields_a_warning_not_a_confident_zero():
+    report = matcher.analyze(jd(), resume(skill("Python")), config())
+    assert report.suggestions
+    assert any("No requirements" in s for s in report.suggestions)
+
+
+def test_collapsed_document_warns_instead_of_claiming_a_strong_match():
+    """A posting that lost its line breaks must not score 100/100."""
+    # Past the 80-character threshold and inside the schema's own 140-character
+    # limit on a requirement name.
+    collapsed = (
+        "Civil Engineer Site Operations Kochi Kerala About the role We are "
+        "looking for a civil engineer Primavera P6 required"
+    )
+    assert 80 <= len(collapsed) <= 120
+    report = matcher.analyze(
+        jd(Requirement(name=collapsed)),
+        resume(skill("Primavera P6"), skill("AutoCAD")),
+        config(),
+    )
+    assert report.suggestions
+    assert any("line breaks" in s for s in report.suggestions)
+    # The warning leads, so it is not buried under per-requirement advice.
+    assert "line breaks" in report.suggestions[0]
+
+
+def test_a_normal_short_posting_is_not_warned_about():
+    report = matcher.analyze(
+        jd(
+            Requirement(name="Primavera P6"),
+            Requirement(name="AutoCAD"),
+            Requirement(name="B.Tech Civil Engineering"),
+        ),
+        resume(skill("Primavera P6")),
+        config(),
+    )
+    assert not any("line breaks" in s for s in report.suggestions)
+    assert not any("No requirements" in s for s in report.suggestions)

@@ -50,6 +50,24 @@ must-have. Useful in CI to fail a pipeline on a known gap.
 
 Supported inputs: PDF, DOCX, Markdown, plain text.
 
+### Web interface
+
+```powershell
+python -m jobmatch.web          # then open http://127.0.0.1:8765
+```
+
+Paste a job description and a resume, press Compare. The page is plain HTML
+with no build step and no CDN, so it works offline and starts in about a
+second. It is bound to `127.0.0.1` and uses the `rules` backend, which makes a
+match take roughly 100ms.
+
+`--host` and `--port` are available, but binding to anything other than
+localhost puts resume data on the network with no authentication. The page
+itself is safe against cross-site scripting: documents travel as JSON and are
+inserted with `textContent`, never as HTML.
+
+The browser accepts pasted text only. For PDF or DOCX, use the command line.
+
 As a library:
 
 ```python
@@ -89,7 +107,7 @@ weighted by importance, must-have 1.0, preferred 0.45, nice-to-have 0.15.
 
 ## Measured behaviour
 
-176 unit tests, plus an 8-case labelled evaluation set
+208 unit tests, plus an 8-case labelled evaluation set
 (`data/eval_cases.json`).
 
 | Backend | Requirement P/R/F1 | Verdict exact | Gap detection F1 | Evidence |
@@ -127,3 +145,12 @@ the taxonomy now finishes in ~25ms either way.
 - `Qwen3-1.7B` is small. It is good at classification and bad at exhaustive
   enumeration, which is why the merge exists rather than a bigger model.
 - Scores are a structured opinion, not a hiring decision.
+- **A verdict is only as good as the parse.** Pasting a posting whose line
+  breaks were lost collapses it into one clause, yields one requirement, and
+  produces a confident and meaningless 100/100. The report detects that
+  specific failure and says so in its first line, but it is worth knowing that
+  "strong match" on a one-requirement input means the input was not read, not
+  that you are a strong match.
+- The `llm` backend scores *worse* than `rules` on verdict accuracy (75% vs
+  87.5%) while taking 50s per case. It earns its place on unusual phrasing,
+  not on the benchmark set. `rules` is the default the web interface uses.

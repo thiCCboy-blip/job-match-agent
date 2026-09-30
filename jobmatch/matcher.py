@@ -590,11 +590,52 @@ def config_gate(must_coverage: float, outcomes: list[MatchOutcome]) -> bool:
 BLOCKER_STATUSES = (MatchStatus.MISSING, MatchStatus.CONTESTED)
 
 
+def _extraction_looks_thin(jd: JDProfile) -> str | None:
+    """Warn when too few requirements came out of too much text.
+
+    Returns the warning, or None when the parse looks plausible. Two signals,
+    because either alone misfires: a very long document that yielded almost
+    nothing usually means the line structure was lost, and a single requirement
+    whose name is nearly the whole document means one clause swallowed
+    everything.
+    """
+    if not jd.requirements:
+        return (
+            "No requirements could be read from the job description, so this "
+            "verdict is meaningless. Check that the posting was pasted with its "
+            "line breaks intact."
+        )
+
+    longest_name = max((len(r.name) for r in jd.requirements), default=0)
+
+    # One requirement, and that requirement is most of the document.
+    if len(jd.requirements) == 1 and longest_name >= 80:
+        return (
+            f"Only one requirement was read, and its name is {longest_name} "
+            "characters long, which means the job description lost its line "
+            "breaks and the whole posting collapsed into a single clause. "
+            "Re-paste it with the original formatting; this score is not "
+            "trustworthy."
+        )
+
+    return None
+
+
 def _suggestions(
     outcomes: list[MatchOutcome], jd: JDProfile, resume: ResumeProfile
 ) -> list[str]:
     """Actionable, ranked next steps. Each one names the specific gap."""
     suggestions: list[str] = []
+
+    # A verdict computed from one or two requirements is not evidence of a
+    # strong match, it is evidence of a failed parse. Pasting a posting whose
+    # line breaks were lost produces exactly this: the whole document collapses
+    # into one clause, one requirement gets extracted, and it matches, and the
+    # weighted mean of a single 1.0 is a confident 100/100. Say so plainly
+    # instead of reporting a number the input cannot support.
+    thin = _extraction_looks_thin(jd)
+    if thin is not None:
+        suggestions.insert(0, thin)
 
     blockers = [o for o in outcomes if o.requirement.importance is Importance.MUST and o.status in BLOCKER_STATUSES]
     for outcome in sorted(blockers, key=lambda o: o.weight, reverse=True):
